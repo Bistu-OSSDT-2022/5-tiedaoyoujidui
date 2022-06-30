@@ -1,0 +1,117 @@
+
+from py2neo import *
+import pandas as pd
+graph = Graph('http://127.0.0.1:7474', username="caskjc", password="123456")
+
+
+
+def yogadata():
+    count  = 0
+    frame = pd.read_csv(r"C:/data/", encoding='gbk')
+    for i in frame.index:
+        
+        '''获取数据'''
+        yoga_wlaqzs = frame["网络安全知识"].values[i]
+        yoga_wlgj = frame["网络攻击"].values[i]
+        yoga_mlwxxwt = frame["网络威胁行为体"].values[i]
+        yoga_sjyzc = frame["数据源组成"].values[i]
+        yoga_stfl = frame["渗透分类"].values[i]
+        yoga_stgj = frame["渗透攻击"].values[i]
+        yoga_stlc = frame["渗透流程"].values[i]
+        yoga_gj = frame["工具"].values[i]
+        yoga_ldjc = frame["漏洞检测"].values[i]
+        yoga_zysx = frame["注意事项"].values[i]
+        yoga_cjwt = frame["常见问题"].values[i]
+
+
+
+        yoga_wlaqzs = str(yoga_wlaqzs)
+        yoga_wlgj = str(yoga_wlgj)
+        yoga_mlwxxwt = str(yoga_mlwxxwt)
+        yoga_sjyzc = str(yoga_sjyzc)
+        yoga_stfl = str(yoga_stfl)
+        yoga_gj = str(yoga_gj)
+        yoga_stgj = str(yoga_stgj)
+        yoga_stlc = str(yoga_stlc)
+        yoga_ldjc = str(yoga_ldjc)
+        yoga_zysx = str(yoga_zysx)
+        yoga_cjwt = str(yoga_cjwt)
+
+
+
+        yoga_node = Node('网络安全知识', name=yoga_wlaqzs)
+        graph.merge(yoga_node)  ## merge方法是将重复数据去除掉，只留第一个
+        wlgj_node = Node('网络攻击', name=yoga_wlgj)
+        mlwxxwt_node = Node('网络威胁行为体', name=yoga_mlwxxwt)
+        sjyzc_node = Node('数据源组成', name=yoga_sjyzc)
+        stfl_node = Node('渗透分类', name=yoga_stfl)
+        stgj_node = Node('渗透攻击', name=yoga_stgj)
+        stlc_node = Node('渗透流程', name=yoga_stlc)
+        gj_node = Node('工具', name=yoga_gj)
+        ldjc_node = Node('漏洞检测', name=yoga_ldjc)
+        zysx_node = Node('注意事项', name=yoga_zysx)
+        cjwt_node = Node('常见问题', name=yoga_cjwt)
+
+        
+        
+        
+        yoga_2 = Relationship(yoga_node, '网络攻击', wlgj_node)
+        yoga_3 = Relationship(yoga_node, '网络威胁行为体', mlwxxwt_node)
+        yoga_4 = Relationship(yoga_node, '数据源组成', sjyzc_node)
+        yoga_5 = Relationship(yoga_node, '渗透分类', ctfl_node)
+        yoga_6 = Relationship(yoga_node, '工具', gj_node)
+        yoga_7 = Relationship(yoga_node, '注意事项', zysx_node)
+        yoga_8 = Relationship(yoga_node, '常见问题', cjwt_node)
+        yoga_9 = Relationship(yoga_node, '漏洞检测', ldjc_node)
+        yoga_10 = Relationship(yoga_node, '渗透攻击', ctgj_node)
+        yoga_11 = Relationship(yoga_node, '渗透流程', ctlc_node)
+
+
+
+        try:
+            graph.create(yoga_2)
+        except:
+            continue
+        try:
+            graph.create(yoga_3)
+        except:
+            continue
+        try:
+            graph.create(yoga_4)
+        except:
+            continue
+        try:
+            graph.create(yoga_5)
+        except:
+            continue
+        try:
+            graph.create(yoga_6)
+        except:
+            continue
+        try:
+            graph.create(yoga_7)
+        except:
+            continue
+        try:
+            graph.create(yoga_8)
+        except:
+            continue
+        try:
+            graph.create(yoga_9)
+        except:
+            continue
+        try:
+            graph.create(yoga_10)
+        except:
+            continue
+        try:
+            graph.create(yoga_11)
+        except:
+            continue
+        count += 1
+        print(count)
+
+
+yogadata()
+
+
