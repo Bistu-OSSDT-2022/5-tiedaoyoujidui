@@ -1,0 +1,114 @@
+网络安全知识服务推荐系统
+一、项目分析
+1.使用算法分析用户的网络安全知识内容喜好，精准的推送给用户想要的内容。推荐系统无处不在：短视频，游戏，电商，浏览器推送消息，包括搜索结果的排序，都算推荐系统的一部分。而且据资料显示，推荐系统给亚马逊带来了35%的销售收入，给Netflix带来了高达75%的消费，并且Youtube主页上60%的浏览来自推荐服务。推荐系统的重要性非常大。
+推荐系统的目的是：帮助用户快速找到想要的内容，提高用户对网站的忠诚度；提高网站交叉销售能力、成交转化率；
+2.表现形式：Browsing : 推荐系统根据查询返回高质量的推荐；
+Similar Item : 根据相似物品推荐；
+Email : 通过邮件推送感兴趣的商品 (亚马逊)；
+Top-N : 推送最可能吸引用户的商品；
+Order-Search Results ： 搜索结果按照兴趣排列；
+技术：People-to-People correlation 协同过滤
+Item-to-Item 根据产品推荐相关产品
+ Based on 用户基础信息. 关联规则挖掘......... 还有很多算法技术，协同过滤算法解析：协同过滤中的“同”代表要找出有共同经验的群体。
+为特定用户找到他真正感兴趣的内容的好方法是，首先找到与此用户有相似兴趣的其他用户，然后将他们感兴趣的内容推荐给此用户。
+现在我们的目标是为User1找到可推荐的网络安全知识内容。
+梳理步骤：首先，找到User1 喜欢的网络安全知识内容；
+找出与User1具有相同的知识兴趣爱好的人群；
+找出该人群喜欢的其他网络安全知识内容；
+将这些网络安全知识内容推送给User1。
+3.项目思路
+(一)、首先想象我们要这样一个表格：
+横坐标，假设有10w网络安全知识内容，所以横坐标有10w个知识_id，数据来源自数据库
+纵坐标，假设有100w个用户，所以纵坐标有100w个user_id，数据也来自数据库
+交叉处，“1”代表用户喜爱，数据来自日志(例如浏览过，查找过，点赞过，)
+"空白"代表用户不喜爱，因为没有任何浏览日志
+(二)、找到用户A(user_id_1)的兴趣爱好如图：用户user_id_1喜欢安全知识内容{m1,m2,m3}
+(三)、找到与用户A(user_id_1)具有相同兴趣爱好的用户群体集合Set如图可以看到，喜欢{m1, m2, m3}的用户，除了u1，还有{u2, u3}
+(四)、 找到该群体喜欢的安全知识内容集合Set如图具备相同喜好的用户{u2, u3}，还喜好的安全知识内容集合是{..., m10000} (橘色的位置)
+(五)、未来用户(use_id_1)来访问网站时，要推荐安全知识内容{..., m10000}给ta。
+二．项目模拟（Python 实现：数据用电影替代安全知识）
+第一步：计算两者之间的相似度
+a.曼哈顿距离计算(计算迅速，节省时间)
+b.欧氏距离计算(计算两个点之间的直线距离) 本文采用欧式距离
+*我们对电影搜集的数据来模拟安全知识内容的数据
+模拟数据我已备好，是一个有关movie 的数据集，数据包含138,000 个用户对27,000 个电影的评价，评价分为0-5，数据集详细介绍点击MovieLens。
+点击下面链接获取数据，解压，读入Python
+数据 ranking ： ml-latest-small(1MB):http://files.grouplens.org/datasets/movielens/ml-latest-small.zip​files.grouplens.org
+数据movies： ml-latest(234.2MB):http://files.grouplens.org/datasets/movielens/ml-latest.zip​files.grouplens.org
+数据格式如下：
+pip install pandas
+import pandas as pd #导入pandas包
+ratings = pd.read_csv('Desktop/ratings.csv')
+print (ratings.head(20))ranking 数据集的数据格式
+movies = pd.read_csv('Desktop/movies.csv')
+print(movie.head(5))movies数据集的数据格式
+合并两个数据集，通过匹配movie_id
+data = pd.merge(movies,ratings,on = 'movieId')
+print(data.head(5))
+data[['userId','rating','movieId','title']].sort_values('userId').to_csv('Desktop/data.csv',index=False)
+# 将合并后的数据集输出保存到桌面 以备后续分析
+files = pd.read_csv('Desktop/data.csv')
+print(file.head(5))合并后数据集的数据格式
+采用python字典来表示每位用户评论的电影和评分
+# 逐行读取刚刚合并并保存的数据集
+content = []
+with open('Desktop/data.csv') as fp:
+content = fp.readlines()
+# 将用户、评分、和电影写入字典data
+data = {}
+for line in content[1:100]:
+line = line.strip().split(',')
+#如果字典中没有某位用户，则使用用户ID来创建这位用户
+if not line[0] in data.keys():
+data[line[0]] = {line[3]:line[1]}
+#否则直接添加以该用户ID为key字典中
+else:
+data[line[0]][line[3]] = line[1]
+data字典data的数据格式
+计算任何两位用户之间的相似度，由于每位用户评论的电影不完全一样，所以首先要找到两位用户共同评论过的电影
+然后计算两者之间的欧式距离，最后算出两者之间的相似度。
+from math import *
+def Euclidean(user1,user2):
+#取出两位用户评论过的电影和评分
+user1_data=data[user1]
+user2_data=data[user2]
+distance = 0
+#找到两位用户都评论过的电影，并计算欧式距离
+for key in user1_data.keys():
+if key in user2_data.keys():
+#注意，distance越大表示两者越相似
+distance += pow(float(user1_data[key])-float(user2_data[key]),2)
+return 1/(1+sqrt(distance))#这里返回值越小，相似度越大
+#计算某个用户与其他用户的相似度
+def top10_simliar(userID):
+res = []
+for userid in data.keys():
+#排除与自己计算相似度
+if not userid == userID:
+simliar = Euclidean(userID,userid)
+res.append((userid,simliar))
+res.sort(key=lambda val:val[1])
+return res[:4]
+RES = top10_simliar('1')
+print(RES)
+# 用户之间相似度结果：0表示两位的影评几乎一样，1表示没有共同的影评
+根据相似度来推荐用户：
+def recommend(user):
+#相似度最高的用户
+top_sim_user = top10_simliar(user)[0][0]
+#相似度最高的用户的观影记录
+items = data[top_sim_user]
+recommendations = []
+#筛选出该用户未观看的电影并添加到列表中
+for item in items.keys():
+if item not in data[user].keys():
+recommendations.append((item,items[item]))
+recommendations.sort(key=lambda val:val[1],reverse=True)#按照评分排序
+#返回评分最高的10部电影
+return recommendations[:10]
+Recommendations = recommend('1')
+print(Recommendations)推荐结果
+好了，简版推荐系统结束。
+三．项目总结
+1.网络安全知识的推荐完全可以类似上述电影内容推荐。
+2.但是我们需要不断完善这个推荐系统，例如，我们使用两个用户对相同安全知识的评分来计算相似度其实不够准确，因为两个用户的评价标准不同，有的人对安全知识评价整体偏高(认为最差的也能给到3.5分)，有的人对安全知识评价偏低(认为最好的安全知识也只给3.5分)，所以在计算的过程中，应该分别减去两个用户对安全知识的整体评分，以修正相似度。
